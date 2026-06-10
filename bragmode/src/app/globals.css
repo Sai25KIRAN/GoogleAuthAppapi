@@ -64,6 +64,31 @@
   --font-label-caps: var(--font-hanken), "Hanken Grotesk", sans-serif;
   --font-nav-item: var(--font-hanken), "Hanken Grotesk", sans-serif;
 
+  /* Font Sizes, Line Heights, and Letter Spacings mapping */
+  --font-size-display-lg: 48px;
+  --font-size-display-lg--line-height: 1.1;
+  --font-size-display-lg--letter-spacing: -0.02em;
+
+  --font-size-label-caps: 12px;
+  --font-size-label-caps--line-height: 1.0;
+  --font-size-label-caps--letter-spacing: 0.2em;
+
+  --font-size-body-lg: 18px;
+  --font-size-body-lg--line-height: 1.6;
+
+  --font-size-body-md: 16px;
+  --font-size-body-md--line-height: 1.6;
+
+  --font-size-nav-item: 14px;
+  --font-size-nav-item--line-height: 1.0;
+  --font-size-nav-item--letter-spacing: 0.1em;
+
+  --font-size-headline-md: 24px;
+  --font-size-headline-md--line-height: 1.3;
+
+  --font-size-display-lg-mobile: 32px;
+  --font-size-display-lg-mobile--line-height: 1.2;
+
   /* Spacings mapping */
   --spacing-margin-mobile: 20px;
   --spacing-margin-desktop: 64px;
