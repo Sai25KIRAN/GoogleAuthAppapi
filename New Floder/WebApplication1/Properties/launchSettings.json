@@ -1,12 +1,25 @@
 {
+  "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "WebApplication1": {
+    "http": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5144",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://localhost:64475;http://localhost:64476"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Authentication__Google__ClientId": "1017679899139-ic36ojefhpu5a15043njlolhd0bufmsc.apps.googleusercontent.com"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:7239;http://localhost:5144",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Authentication__Google__ClientId": "1017679899139-ic36ojefhpu5a15043njlolhd0bufmsc.apps.googleusercontent.com"
+      }
     }
   }
 }
