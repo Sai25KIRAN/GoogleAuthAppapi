@@ -32,16 +32,30 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // Configure CORS to authorize your Angular frontend local development server
-var angularCorsPolicy = "_myAllowSpecificOrigins";
+//var angularCorsPolicy = "_myAllowSpecificOrigins";
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy(name: angularCorsPolicy,
+//        policy =>
+//        {
+//            policy.WithOrigins("http://localhost:4200") // Matches your frontend URL
+//                  .AllowAnyHeader()
+//                  .AllowAnyMethod();
+//        });
+//});
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: angularCorsPolicy,
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:4200") // Matches your frontend URL
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("VercelCorsPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "https://google-auth-app-lyart.vercel.app",
+                "https://google-auth-app-git-main-sai25kirans-projects.vercel.app"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Include this if you pass cookies/auth headers
+    });
 });
 
 var app = builder.Build();
@@ -62,7 +76,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // CORS must be executed BEFORE authorization and routing mapping rules
-app.UseCors(angularCorsPolicy);
+//app.UseCors(angularCorsPolicy);
+
+app.UseCors("VercelCorsPolicy");
 
 app.UseAuthorization();
 
