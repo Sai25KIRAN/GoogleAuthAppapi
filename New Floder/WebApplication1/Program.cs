@@ -60,17 +60,19 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseSwagger();
+app.UseSwaggerUI();
 // --- 2. CONFIGURE MIDDLEWARE PIPELINE ---
 
 // Enable interactive documentation exclusively during local development
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();   // Serves raw OpenAPI definition JSON at /swagger/v1/swagger.json
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
-        options.RoutePrefix = "swagger"; // Opens documentation directly at root-domain/swagger
-    });
+    //app.UseSwagger();   // Serves raw OpenAPI definition JSON at /swagger/v1/swagger.json
+    //app.UseSwaggerUI(options =>
+    //{
+    //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
+    //    options.RoutePrefix = "swagger"; // Opens documentation directly at root-domain/swagger
+    //});
 }
 
 app.UseHttpsRedirection();
