@@ -1,26 +1,58 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using System.Text;
 using WebApplication1.Models;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
 // --- 1. REGISTER SERVICES ---
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("AzureDbConnection"),
-        sqlServerOptionsAction: sqlOptions =>
+
+// Database Connection with automated fallback if Azure connection isn't present
+var connectionString = builder.Configuration.GetConnectionString("AzureDbConnection");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(connectionString, sqlServerOptionsAction: sqlOptions =>
         {
-            // This enables built-in Azure transient error handling
             sqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 5,
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorNumbersToAdd: null);
         }));
+}
+else
+{
+    // Fallback to avoid complete deployment crash if running on empty environment variables
+    builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("FallbackDb"));
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configure Swagger with explicit document settings
+// CRITICAL FIX: Register Authentication and JWT Bearer Services
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "TEMPORARY_FALLBACK_SECRET_KEY_32_CHARS_LONG";
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "https://webapplication1-production-7945.up.railway.app",
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "https://google-auth-app-lyart.vercel.app",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
+// Configure Swagger Docs
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -31,19 +63,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Configure CORS to authorize your Angular frontend local development server
-//var angularCorsPolicy = "_myAllowSpecificOrigins";
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy(name: angularCorsPolicy,
-//        policy =>
-//        {
-//            policy.WithOrigins("http://localhost:4200") // Matches your frontend URL
-//                  .AllowAnyHeader()
-//                  .AllowAnyMethod();
-//        });
-//});
-
+// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("VercelCorsPolicy", policy =>
@@ -54,37 +74,29 @@ builder.Services.AddCors(options =>
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Include this if you pass cookies/auth headers
+              .AllowCredentials();
     });
 });
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
 // --- 2. CONFIGURE MIDDLEWARE PIPELINE ---
 
-// Enable interactive documentation exclusively during local development
-if (app.Environment.IsDevelopment())
+// Swagger UI visible in both Local and Production (Railway)
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    //app.UseSwagger();   // Serves raw OpenAPI definition JSON at /swagger/v1/swagger.json
-    //app.UseSwaggerUI(options =>
-    //{
-    //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
-    //    options.RoutePrefix = "swagger"; // Opens documentation directly at root-domain/swagger
-    //});
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
+    options.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 
-// CORS must be executed BEFORE authorization and routing mapping rules
-//app.UseCors(angularCorsPolicy);
-
+// CRITICAL EXECUTION ORDER: CORS -> Auth -> Controllers
 app.UseCors("VercelCorsPolicy");
 
+app.UseAuthentication(); // MUST be explicitly called before Authorization
 app.UseAuthorization();
 
-// Automatically discovers and maps endpoints defined inside Controllers/AuthController.cs
 app.MapControllers();
-
 app.Run();
