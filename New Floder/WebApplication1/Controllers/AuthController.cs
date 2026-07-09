@@ -128,9 +128,9 @@ namespace WebApplication.Controllers
                     name = user.Name
                 });
             }
-            catch (InvalidJwtException)
+            catch (InvalidJwtException ex)
             {
-                return BadRequest(new { message = "Invalid Google token signature." });
+                return StatusCode(500,new { message = "Invalid Google token signature.", details = ex.Message });
             }
             catch (Exception ex)
             {
