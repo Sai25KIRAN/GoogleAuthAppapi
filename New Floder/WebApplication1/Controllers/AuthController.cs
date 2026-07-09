@@ -70,13 +70,13 @@ namespace WebApplication.Controllers
                     name = user.Name
                 });
             }
-            catch (InvalidJwtException)
-            {
-                return BadRequest(new { message = "Invalid Google token signature." });
-            }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Internal Server Error", details = ex.Message });
+                return BadRequest(new
+                {
+                    ex.Message,
+                    Inner = ex.InnerException?.Message
+                });
             }
         }
 
