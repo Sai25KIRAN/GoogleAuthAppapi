@@ -175,6 +175,6 @@ namespace WebApplication.Controllers
     // Explicitly declaring the exact data class structure expected by the model binder
     public class GoogleLoginDto
     {
-        public string Token { get; set; }
+        public string IdToken { get; set; }
     }
 }
