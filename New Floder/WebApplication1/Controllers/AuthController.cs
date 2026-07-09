@@ -26,7 +26,7 @@ namespace WebApplication.Controllers
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
         {
             // Validates that data structural binding succeeded
-            if (dto == null || string.IsNullOrEmpty(dto.Token))
+            if (dto == null || string.IsNullOrEmpty(dto.IdToken))
             {
                 return BadRequest(new { message = "The target data property 'token' is missing or empty." });
             }
@@ -41,7 +41,7 @@ namespace WebApplication.Controllers
                 };
 
                 // Validate the raw token against Google OAuth servers
-                GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(dto.Token, settings);
+                GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
 
                 // Find user in DB using Google's unique subject identifier
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.GoogleUserId == payload.Subject);
